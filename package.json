@@ -3,11 +3,16 @@
   "private": true,
   "description": "Postman local mock for CMS LinkUMKM notification APIs",
   "scripts": {
-    "mock": "node ./postman/mocks/notification-list/default.js",
+    "mock": "node ./scripts/free-port.mjs && tsx ./postman/mocks/notification-list/default.ts",
+    "mock:stop": "node ./scripts/free-port.mjs",
+    "typecheck": "tsc --noEmit",
     "mock:postman": "postman mock run ./postman/mocks/notification-list",
     "mock:generate": "postman mock generate ./postman/collections/cms-linkumkm-notifications -n notification-list --port 4010 --force"
   },
   "devDependencies": {
-    "postman-cli": "^1.63.0"
+    "@types/node": "^22.13.10",
+    "postman-cli": "^1.63.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
   }
 }

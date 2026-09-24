@@ -2,11 +2,57 @@
  * Local mock: GET /api/notifications
  * Seed data mirrors CMS LinkUMKM Daftar Notifikasi screenshot.
  */
-const http = require('http');
+import http from 'node:http';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 
-const PORT = process.env.PORT || 4010;
+const PORT = Number(process.env.PORT) || 4010;
 
-const COUNTS = {
+type NotificationStatus =
+  | 'draft'
+  | 'pending_approval'
+  | 'queued'
+  | 'scheduled'
+  | 'sent'
+  | 'failed'
+  | 'returned';
+
+type NotificationChannel = 'app' | 'email';
+
+interface NotificationItem {
+  id: string;
+  title: string;
+  channel: NotificationChannel;
+  submittedBy: string | null;
+  subtitle: string | null;
+  status: NotificationStatus;
+  statusLabel: string;
+  statusDetail: string | null;
+  targetCount: number | null;
+  date: string | null;
+}
+
+interface NotificationCounts {
+  all: number;
+  draft: number;
+  pending_approval: number;
+  queued: number;
+  scheduled: number;
+  sent: number;
+  failed: number;
+  returned: number;
+}
+
+interface NotificationListResponse {
+  data: NotificationItem[];
+  meta: {
+    page: number;
+    limit: number;
+    total: number;
+  };
+  counts: NotificationCounts;
+}
+
+const COUNTS: NotificationCounts = {
   all: 138,
   draft: 14,
   pending_approval: 14,
@@ -17,7 +63,7 @@ const COUNTS = {
   returned: 2,
 };
 
-const NOTIFICATIONS = [
+const NOTIFICATIONS: NotificationItem[] = [
   {
     id: 'notif-001',
     title: 'Diskon Ongkir untuk Pesanan UMKM',
@@ -140,13 +186,18 @@ const NOTIFICATIONS = [
   },
 ];
 
-const CORS_HEADERS = {
+const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-mock-scenario, x-mock-response-code',
+  'Access-Control-Allow-Headers':
+    'Content-Type, Authorization, x-mock-scenario, x-mock-response-code',
 };
 
-function sendJson(res, statusCode, body) {
+function sendJson(
+  res: ServerResponse,
+  statusCode: number,
+  body: unknown
+): void {
   res.writeHead(statusCode, {
     'Content-Type': 'application/json',
     ...CORS_HEADERS,
@@ -154,12 +205,15 @@ function sendJson(res, statusCode, body) {
   res.end(JSON.stringify(body));
 }
 
-function listNotifications(url) {
+function listNotifications(url: URL): NotificationListResponse {
   const status = (url.searchParams.get('status') || 'all').toLowerCase();
   const channel = (url.searchParams.get('channel') || 'all').toLowerCase();
   const q = (url.searchParams.get('q') || '').trim().toLowerCase();
   const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10) || 1);
-  const limit = Math.max(1, parseInt(url.searchParams.get('limit') || '10', 10) || 10);
+  const limit = Math.max(
+    1,
+    parseInt(url.searchParams.get('limit') || '10', 10) || 10
+  );
 
   let filtered = NOTIFICATIONS.slice();
 
@@ -188,20 +242,41 @@ function listNotifications(url) {
   };
 }
 
-const server = http.createServer((req, res) => {
+const server = http.createServer((req: IncomingMessage, res: ServerResponse) => {
   const url = new URL(req.url || '', 'http://localhost');
   const pathname = url.pathname;
 
   if (req.method === 'OPTIONS' && pathname === '/api/notifications') {
     res.writeHead(204, CORS_HEADERS);
-    return res.end();
+    res.end();
+    return;
   }
 
   if (req.method === 'GET' && pathname === '/api/notifications') {
-    return sendJson(res, 200, listNotifications(url));
+    sendJson(res, 200, listNotifications(url));
+    return;
   }
 
   sendJson(res, 404, { error: 'Endpoint not defined' });
 });
 
-server.listen(PORT);
+server.listen(PORT, () => {
+  console.log(`Mock server listening on http://localhost:${PORT}`);
+  console.log('Press Ctrl+C to stop (port will be released).');
+});
+
+function shutdown(signal: string): void {
+  console.log(`\nReceived ${signal}, shutting down...`);
+  server.close(() => {
+    console.log(`Port ${PORT} released.`);
+    process.exit(0);
+  });
+  // Force exit if close hangs (open keep-alive connections)
+  setTimeout(() => process.exit(0), 1500).unref();
+}
+
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+
+// Windows: terminal close / npm stop often sends this
+process.on('SIGHUP', () => shutdown('SIGHUP'));

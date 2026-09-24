@@ -18,6 +18,8 @@ Install cuma local di repo ini (`node_modules/` di disk D), bukan `npm -g`.
 npm run mock
 ```
 
+Sebelum start, script otomatis **mengosongkan port 4010** kalau masih kepakai proses lama. Stop: `Ctrl+C`, atau `npm run mock:stop`.
+
 Server: `http://localhost:4010`
 
 Endpoint:
@@ -68,7 +70,7 @@ Alternatif tanpa CORS di browser: rewrite di `next.config` dari `/api/notificati
 
 - `postman/collections/cms-linkumkm-notifications/` — kontrak + example 200
 - `postman/environments/local.yaml` — `baseUrl=http://localhost:4010`
-- `postman/mocks/notification-list/` — mock server (`default.js` + `config.yaml`)
+- `postman/mocks/notification-list/` — mock server (`default.ts` + `config.yaml`)
 
 Regenerate mock dari collection (overwrite):
 
@@ -76,4 +78,4 @@ Regenerate mock dari collection (overwrite):
 npm run mock:generate
 ```
 
-Setelah generate, logic filter/CORS di `default.js` perlu di-restore kalau ter-overwrite — file itu yang jadi sumber kebenaran behavior mock.
+Setelah generate, logic filter/CORS di `default.ts` perlu di-restore kalau ter-overwrite — file itu yang jadi sumber kebenaran behavior mock. Jalankan selalu lewat `npm run mock` (tsx), bukan `postman mock run` yang expect `.js`.

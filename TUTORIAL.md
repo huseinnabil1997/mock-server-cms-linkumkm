@@ -2,15 +2,35 @@
 
 Panduan buat rekan yang mau belajar **integrasi frontend ↔ API** pakai mock lokal ini. Tidak butuh backend real — mock ini meniru response halaman **Daftar Notifikasi** CMS LinkUMKM.
 
+Tutorial ini ada **dua jalur**:
+
+| Jalur | Fokus |
+|-------|--------|
+| **A. Server-side** | Cara mock API bekerja, filter, CORS, menambah endpoint |
+| **B. Client-side** | Fetch dari Next.js, mapping response ke UI |
+
+Mulai dari setup dulu (langkah 1–3), lalu pilih jalur A / B / keduanya.
+
 ---
 
 ## Apa yang kamu pelajari
 
+**Umum**
+
 1. Menjalankan mock API lokal
 2. Membaca kontrak API (query + response shape)
-3. Hit API dari terminal (sanity check)
-4. Integrasi ke Next.js (env, fetch, mapping ke UI)
-5. Filter tab / search seperti di halaman asli
+3. Hit API dari terminal / Postman (sanity check)
+
+**Server-side**
+
+4. Membaca flow request di `default.ts`
+5. Memahami seed data, filter, pagination, CORS
+6. Menambah / mengubah endpoint mock dengan aman
+
+**Client-side**
+
+7. Integrasi ke Next.js (env, fetch, mapping ke UI)
+8. Filter tab / search seperti di halaman asli
 
 ---
 
@@ -18,6 +38,7 @@ Panduan buat rekan yang mau belajar **integrasi frontend ↔ API** pakai mock lo
 
 - Node.js 18+ (`node -v`)
 - Repo ini sudah di clone
+- TypeScript dijalankan via `tsx` (sudah ada di `devDependencies` setelah `npm install`)
 - (Opsional) project Next.js sendiri buat latihan UI
 
 ---
@@ -133,11 +154,98 @@ Atau buka di browser:
 http://localhost:4010/api/notifications?status=all
 ```
 
-Kalau JSON muncul → API siap diintegrasikan.
+Kalau JSON muncul → API siap dipakai (client) / siap diutak-atik (server).
 
 ---
 
-## Langkah 4 — Integrasi ke Next.js
+## Jalur A — Server-side (cara mock API bekerja)
+
+File utama: `postman/mocks/notification-list/default.ts` (TypeScript, dijalankan lewat `tsx`)
+
+Ini **bukan** framework berat — cuma Node `http` server. Cocok buat paham “request masuk → response keluar” tanpa distraksi.
+
+### A1. Alur request (big picture)
+
+```text
+Client (Postman / Next)
+        │  GET /api/notifications?status=sent
+        ▼
+http.createServer  →  parse URL + method
+        │
+        ├─ OPTIONS?  →  balas CORS preflight (204)
+        ├─ GET /api/notifications?  →  listNotifications(url) → JSON 200
+        └─ selain itu  →  404 { error: "Endpoint not defined" }
+```
+
+### A2. Bagian-bagian penting di `default.ts`
+
+| Bagian | Fungsi |
+|--------|--------|
+| Types (`NotificationItem`, dll.) | Kontrak data TypeScript (status, channel, response) |
+| `PORT` | Port listen (default `4010`, override pakai env `PORT`) |
+| `COUNTS` | Angka di tiap tab UI (mirip screenshot) |
+| `NOTIFICATIONS` | Seed data 10 baris list |
+| `CORS_HEADERS` | Biar browser (Next di `:3000`) boleh cross-origin hit |
+| `sendJson()` | Helper: set status + header + `JSON.stringify` |
+| `listNotifications(url)` | Baca query → filter → paginate → bentuk response |
+| `http.createServer(...)` | Routing method + path |
+
+### A3. Baca query & filter (inti server)
+
+Di `listNotifications`:
+
+1. Ambil query: `status`, `channel`, `q`, `page`, `limit`
+2. Clone array seed: `NOTIFICATIONS.slice()`
+3. Filter berurutan (status → channel → search judul)
+4. Hitung `total` dari hasil filter
+5. Slice untuk pagination: `filtered.slice(start, start + limit)`
+6. Return `{ data, meta, counts }`
+
+Coba sendiri (mock harus jalan):
+
+```bash
+# tanpa filter → 10 item seed
+npx postman request "http://localhost:4010/api/notifications?status=all"
+
+# server filter status=sent → 2 item
+npx postman request "http://localhost:4010/api/notifications?status=sent"
+
+# server filter q=Diskon → 1 item
+npx postman request "http://localhost:4010/api/notifications?q=Diskon"
+```
+
+Kalau hasilnya berubah sesuai query → filter di **server** yang jalan, bukan di client.
+
+### A4. Kenapa ada CORS + OPTIONS?
+
+Next.js jalan di `localhost:3000`, mock di `localhost:4010` → beda origin.
+
+- Browser kirim **preflight** `OPTIONS` dulu
+- Server harus balas header `Access-Control-Allow-*`
+- Baru request `GET` yang sebenarnya diizinkan
+
+Tanpa ini, client browser kena CORS error meski Postman (bukan browser) tetap sukses.
+
+### A5. Latihan server-side
+
+Kerjakan di `default.ts`, restart mock tiap kali edit (`Ctrl+C` lalu `npm run mock` — **tidak ada hot reload**).
+
+1. **Tambah field** di salah satu item seed, mis. `"priority": "high"`, hit ulang, pastikan muncul di JSON
+2. **Filter baru**: query `priority=high` (opsional) — kalau ada, filter item yang match
+3. **Endpoint baru** `GET /api/notifications/:id` (atau `?id=notif-001`) yang return 1 item / 404
+4. **Error case**: kalau `limit` > 50, balas `400` + `{ "error": "limit max 50" }`
+5. **Update collection** (opsional): tambah example di folder `postman/collections/...` biar kontrak ikut berubah
+
+Checklist server:
+
+- [ ] Bisa jelasin alur `createServer` → route → `listNotifications`
+- [ ] Ubah seed → response ikut berubah setelah restart
+- [ ] Tambah filter / endpoint kecil sendiri
+- [ ] Paham kenapa CORS dibutuhkan buat Next
+
+---
+
+## Jalur B — Client-side (integrasi Next.js)
 
 ### 4.1 Env
 
@@ -329,10 +437,16 @@ Workflow lokal:
 
 ## Langkah 5 — Checklist “udah paham integrasi”
 
-Centang satu per satu:
+**Server**
+
+- [ ] Bisa baca & jelasin `default.ts`
+- [ ] Filter `status` / `q` terasa dari response (bukan cuma teori)
+- [ ] Pernah edit seed / tambah logic kecil + restart mock
+
+**Client**
 
 - [ ] Mock jalan di `:4010`
-- [ ] Bisa lihat JSON di browser / `postman request`
+- [ ] Bisa lihat JSON di browser / Postman / `postman request`
 - [ ] Next.js baca `NEXT_PUBLIC_API_URL`
 - [ ] List muncul di UI dari `data`
 - [ ] Klik tab → `status` berubah → list ikut filter
@@ -347,10 +461,10 @@ Centang satu per satu:
 | Gejala | Cek |
 |--------|-----|
 | `ECONNREFUSED` / Failed to fetch | Mock belum jalan → `npm run mock` |
-| CORS error | Mock harus versi yang ada CORS (file `default.js` di repo ini sudah include) |
+| CORS error | Mock harus versi yang ada CORS (file `default.ts` di repo ini sudah include) |
 | Env kosong / URL undefined | Pastikan `.env.local` + restart Next |
 | Tab filter kosong | Cek value `status` harus snake_case Inggris (`pending_approval`, bukan label UI) |
-| Port 4010 dipakai | Set `PORT=4011` lalu sesuaikan `NEXT_PUBLIC_API_URL` |
+| Port 4010 dipakai | `npm run mock` otomatis free-kan port dulu; atau `npm run mock:stop` |
 
 Jalankan mock di port lain:
 
@@ -365,7 +479,7 @@ $env:PORT=4011; npm run mock
 
 | Path | Isi |
 |------|-----|
-| `postman/mocks/notification-list/default.js` | Logic mock + seed data |
+| `postman/mocks/notification-list/default.ts` | Logic mock + seed data (TypeScript) |
 | `postman/collections/cms-linkumkm-notifications/` | Kontrak request + example 200 |
 | `postman/environments/local.yaml` | `baseUrl` local |
 | `README.md` | Ringkasan cepat run |
@@ -378,10 +492,20 @@ Kalau mau lihat contoh response lengkap, buka example di:
 
 ## Latihan lanjutan (opsional)
 
+**Client**
+
 1. Tambah debounce di search (jangan fetch tiap keystroke)
 2. Format `targetCount` jadi `24.180` (locale `id-ID`)
 3. Badge warna per `status` (hijau `sent`, merah `failed`, dst.)
 4. Empty state kalau `data.length === 0`
 5. Skeleton loading saat fetch
 
-Selesai latihan di atas = kamu udah siap integrasi API list yang mirip production.
+**Server**
+
+6. Endpoint detail by id + status 404
+7. Validasi query (`page`/`limit` invalid → 400)
+8. Sort by `date` descending
+9. Simulasikan delay (`setTimeout`) biar client bisa latihan loading state
+10. Pisahkan seed ke file `data/notifications.json` lalu `import` di `default.ts`
+
+Selesai latihan di atas = kamu udah siap integrasi API list yang mirip production (baik sisi server mock maupun client).

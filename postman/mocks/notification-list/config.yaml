@@ -4,7 +4,9 @@ name: notification-list
 slug: notification-list
 protocol: http
 port: 4010
+# Behavior source of truth: default.ts (run via `npm run mock` / tsx).
+# postman mock run expects a .js scenario file; prefer `npm run mock` for local use.
 scenarios:
   - name: default
-    path: ./default.js
+    path: ./default.ts
     default: true
