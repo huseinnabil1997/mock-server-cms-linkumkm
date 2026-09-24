@@ -1,0 +1,6 @@
+$kind: collection
+name: cms-linkumkm-notifications
+description: API mock kontrak untuk halaman Daftar Notifikasi CMS LinkUMKM
+variables:
+  - key: baseUrl
+    value: 'http://localhost:4010'

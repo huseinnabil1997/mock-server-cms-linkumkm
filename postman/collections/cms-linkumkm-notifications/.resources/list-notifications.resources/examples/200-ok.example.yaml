@@ -1,0 +1,154 @@
+$kind: http-example
+name: '200 OK'
+order: 1000
+request:
+  url: '{{baseUrl}}/api/notifications?status=all&channel=all&page=1&limit=10'
+  method: GET
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    - key: Content-Type
+      value: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "data": [
+          {
+            "id": "notif-001",
+            "title": "Diskon Ongkir untuk Pesanan UMKM",
+            "channel": "app",
+            "submittedBy": "Adhitya Pratama",
+            "subtitle": "Diajukan Adhitya Pratama",
+            "status": "sent",
+            "statusLabel": "Terkirim",
+            "statusDetail": "2.415 gagal terkirim",
+            "targetCount": 24180,
+            "date": "2026-06-28"
+          },
+          {
+            "id": "notif-002",
+            "title": "Pengingat Bayar Tagihan (Gagal)",
+            "channel": "app",
+            "submittedBy": "Adhitya Pratama",
+            "subtitle": "Diajukan Adhitya Pratama",
+            "status": "failed",
+            "statusLabel": "Gagal Terkirim",
+            "statusDetail": "Semua gagal terkirim",
+            "targetCount": 31520,
+            "date": "2026-06-22"
+          },
+          {
+            "id": "notif-003",
+            "title": "Kelas Online Atur Modal Usaha",
+            "channel": "app",
+            "submittedBy": "Adhitya Pratama",
+            "subtitle": "Diajukan Adhitya Pratama. Kirim ulang ke semua 96.820 penerima",
+            "status": "pending_approval",
+            "statusLabel": "Menunggu Persetujuan",
+            "statusDetail": "di Admin Ops",
+            "targetCount": 96820,
+            "date": "2026-06-11"
+          },
+          {
+            "id": "notif-004",
+            "title": "Email •",
+            "channel": "email",
+            "submittedBy": null,
+            "subtitle": null,
+            "status": "draft",
+            "statusLabel": "Draf",
+            "statusDetail": null,
+            "targetCount": null,
+            "date": null
+          },
+          {
+            "id": "notif-005",
+            "title": "Kelas Online Atur Modal Usaha",
+            "channel": "email",
+            "submittedBy": "Adhitya Pratama",
+            "subtitle": "Diajukan Adhitya Pratama",
+            "status": "sent",
+            "statusLabel": "Terkirim",
+            "statusDetail": null,
+            "targetCount": 19640,
+            "date": "2026-06-27"
+          },
+          {
+            "id": "notif-006",
+            "title": "Bazar Ramadan UMKM Nasional",
+            "channel": "app",
+            "submittedBy": "Adhitya Pratama",
+            "subtitle": "Diajukan Adhitya Pratama",
+            "status": "scheduled",
+            "statusLabel": "Terjadwal",
+            "statusDetail": null,
+            "targetCount": 8234,
+            "date": "2026-06-26"
+          },
+          {
+            "id": "notif-007",
+            "title": "Tips Jualan Laris saat Ramadan",
+            "channel": "app",
+            "submittedBy": "Adhitya Pratama",
+            "subtitle": "Diajukan Adhitya Pratama",
+            "status": "pending_approval",
+            "statusLabel": "Menunggu Persetujuan",
+            "statusDetail": "di Admin Ops",
+            "targetCount": 5120,
+            "date": "2026-06-25"
+          },
+          {
+            "id": "notif-008",
+            "title": "Undangan Webinar Ekspor UMKM",
+            "channel": "email",
+            "submittedBy": "Adhitya Pratama",
+            "subtitle": "Diajukan Adhitya Pratama",
+            "status": "pending_approval",
+            "statusLabel": "Menunggu Persetujuan",
+            "statusDetail": "di Admin CMS",
+            "targetCount": 12300,
+            "date": "2026-10-24"
+          },
+          {
+            "id": "notif-009",
+            "title": "Ajakan Ikut Kelas Pembukuan",
+            "channel": "app",
+            "submittedBy": null,
+            "subtitle": "Belum diajukan, terakhir disimpan 23 Jun 2026",
+            "status": "draft",
+            "statusLabel": "Draf",
+            "statusDetail": null,
+            "targetCount": null,
+            "date": null
+          },
+          {
+            "id": "notif-010",
+            "title": "Pengumuman Libur Layanan Akhir Pekan",
+            "channel": "app",
+            "submittedBy": "Adhitya Pratama",
+            "subtitle": "Diajukan Adhitya Pratama",
+            "status": "scheduled",
+            "statusLabel": "Terjadwal",
+            "statusDetail": null,
+            "targetCount": 15000,
+            "date": "2026-06-22"
+          }
+        ],
+        "meta": {
+          "page": 1,
+          "limit": 10,
+          "total": 138
+        },
+        "counts": {
+          "all": 138,
+          "draft": 14,
+          "pending_approval": 14,
+          "queued": 3,
+          "scheduled": 13,
+          "sent": 90,
+          "failed": 2,
+          "returned": 2
+        }
+      }

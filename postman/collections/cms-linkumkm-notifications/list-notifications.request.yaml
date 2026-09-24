@@ -1,0 +1,21 @@
+$kind: http-request
+name: list notifications
+method: GET
+url: '{{baseUrl}}/api/notifications'
+order: 1000
+queryParams:
+  - key: status
+    value: all
+    description: 'all | draft | pending_approval | queued | scheduled | sent | failed | returned'
+  - key: q
+    value: ''
+    description: Cari judul notifikasi
+    disabled: true
+  - key: channel
+    value: all
+    description: 'all | app | email'
+  - key: page
+    value: '1'
+  - key: limit
+    value: '10'
+examples: './.resources/list-notifications.resources/examples'

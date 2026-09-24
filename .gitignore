@@ -1,0 +1,7 @@
+.idea/
+.vscode/
+.cursor/
+.env
+.env.*
+!.env.example
+node_modules/

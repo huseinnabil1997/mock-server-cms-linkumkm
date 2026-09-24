@@ -1,0 +1,13 @@
+{
+  "name": "mock-server-cms-linkumkm",
+  "private": true,
+  "description": "Postman local mock for CMS LinkUMKM notification APIs",
+  "scripts": {
+    "mock": "node ./postman/mocks/notification-list/default.js",
+    "mock:postman": "postman mock run ./postman/mocks/notification-list",
+    "mock:generate": "postman mock generate ./postman/collections/cms-linkumkm-notifications -n notification-list --port 4010 --force"
+  },
+  "devDependencies": {
+    "postman-cli": "^1.63.0"
+  }
+}

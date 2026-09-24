@@ -1,0 +1,10 @@
+version: 1
+id: 641b4f80-3da5-4907-add1-5eadbfb02d40
+name: notification-list
+slug: notification-list
+protocol: http
+port: 4010
+scenarios:
+  - name: default
+    path: ./default.js
+    default: true
